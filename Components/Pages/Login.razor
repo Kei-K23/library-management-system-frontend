@@ -1,8 +1,58 @@
 ﻿@page "/login"
+@rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using LibraryManagementSystemApp.Components.Layout
 @layout AuthLayout
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IJSRuntime JS
 
 <PageTitle>Login</PageTitle>
 
-<h1>Login!</h1>
+<div class="container mt-5">
+    <h1 class="text-center mb-3">Library Management System</h1>
+    <h2 class="mb-4 text-center">Login</h2>
+    <EditForm Model="loginModel" OnValidSubmit="HandleLogin" FormName="loginForm" class="">
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <InputText type="email" @bind-Value="loginModel.Email" class="form-control" id="email" />
+        </div>
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <InputText @bind-Value="loginModel.Password" type="password" class="form-control" id="password" />
+        </div>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </EditForm>
+</div>
+
+@code {
+    private LoginModel loginModel = new LoginModel();
+    private async Task HandleLogin()
+    {
+        var loginData = new { Email = loginModel.Email, Password = loginModel.Password };
+        // Hanle login here
+        var response = await Http.PostAsJsonAsync("/api/v1/auth/login", loginData);
+
+        if (response.IsSuccessStatusCode)
+        {
+            var token = await response.Content.ReadAsStringAsync();
+            // Store the token in local storage
+            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
+            await JS.InvokeVoidAsync("blazorExtensions.WriteCookie", "authToken", token, 1h);
+
+
+            // Redirect to home page or any other page
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            Console.WriteLine("Error here");
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; }
+        public string Password { get; set; }
+    }
+}

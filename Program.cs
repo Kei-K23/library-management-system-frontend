@@ -1,16 +1,9 @@
 using System.Text;
 using LibraryManagementSystemApp.Components;
-using LibraryManagementSystemApp.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddRazorComponents()
-    .AddInteractiveServerComponents();
-
-
 // Secret key
 var jwtKey = builder.Configuration.GetSection("Jwt:Key").Get<string>();
 var key = Encoding.ASCII.GetBytes(jwtKey);
@@ -48,10 +41,14 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Add services to the container.
+builder.Services.AddRazorComponents()
+    .AddInteractiveServerComponents();
+
+builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5263") });
+
 var app = builder.Build();
 
-// Middleware register
-app.UseMiddleware<RedirectToLoginMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
