@@ -56,7 +56,8 @@ else
                         <td>
                             @if (user.IsLocked.HasValue)
                             {
-                                <button class="btn btn-sm @(user.IsLocked.Value ? "btn-warning" : "btn-danger")">
+                                <button @onclick="() => OnLockUser(user.Id, user.IsLocked.Value)"
+                                    class="btn btn-sm @(user.IsLocked.Value ? "btn-warning" : "btn-danger")">
                                     @(user.IsLocked.Value ? "Un-Lock" : "Lock")
                                 </button>
                             }
@@ -116,6 +117,25 @@ else
         isLoading = true;
         var url = "/api/v1/users/" + userId;
         var updatePayload = new { IsBanned = !isBan };
+
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, url, updatePayload);
+        if (!string.IsNullOrEmpty(error))
+        {
+            errorMessage = error;
+        }
+        else
+        {
+            await OnMutationUpdate();
+        }
+
+        isLoading = false;
+    }
+
+    private async Task OnLockUser(Guid userId, bool isLock)
+    {
+        isLoading = true;
+        var url = "/api/v1/users/" + userId;
+        var updatePayload = new { IsLocked = !isLock };
 
         var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, url, updatePayload);
         if (!string.IsNullOrEmpty(error))
