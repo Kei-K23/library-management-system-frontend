@@ -1,19 +1,67 @@
 ﻿@page "/users"
 @rendermode InteractiveServer
+@using LibraryManagementSystemApp.Models
+@using LibraryManagementSystemApp.Services
+@inject ApiService apiService
 
 <PageTitle>Users</PageTitle>
 
-<h1>Users</h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3>Manage Users</h3>
+    <button class="btn btn-primary">New User</button>
+</div>
 
-<p role="status">Current count: @currentCount</p>
-
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+@if (users.Count < 0)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="table-responsive-xxl overflow-x-hidden">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Username</th>
+                <th>Email</th>
+                <th>User role</th>
+                <th>Is banned</th>
+                <th>Is locked</th>
+                <th>Date of joined</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < users.Count; i++)
+                {
+                    <tr>
+                        <th>@i</th>
+                        <td>@users[i].UserName</td>
+                        <td>@users[i].Email</td>
+                        <td>@users[i].UserRole</td>
+                        <td>@users[i].IsBanned</td>
+                        <td>@users[i].IsLocked</td>
+                        <td>@users[i].DateJoined.ToShortDateString()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
 
 @code {
-    private int currentCount = 0;
-
-    private void IncrementCount()
+    private List<User> users = new List<User>();
+    private string errorMessage = "";
+    protected override async Task OnInitializedAsync()
     {
-        currentCount++;
+        var (data, error) = await apiService.SendRequestAsync<User[]>(HttpMethod.Get, "/api/v1/users");
+
+        if (error != null)
+        {
+            errorMessage = error;
+        }
+        else
+        {
+            users = data.ToList();
+        }
     }
 }
