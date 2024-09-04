@@ -9,10 +9,10 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Manage Users</h3>
-    <CreateUserModal OnUserCreated="OnUserCreated" />
+    <CreateUserModal OnMutationUpdate="OnMutationUpdate" />
 </div>
 
-@if (users.Count == 0 && string.IsNullOrEmpty(errorMessage))
+@if (isLoading)
 {
     <p>Loading...</p>
 }
@@ -33,22 +33,44 @@ else
                 <th>Is banned</th>
                 <th>Is locked</th>
                 <th>Date of joined</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
-            @for (int i = 0; i < users.Count; i++)
+            @foreach (var user in users)
                 {
                     <tr>
-                        <th>@i</th>
-                        <td>@users[i].UserName</td>
-                        <td>@users[i].Email</td>
-                        <td>@users[i].UserRole</td>
-                        <td>@users[i].IsBanned</td>
-                        <td>@users[i].IsLocked</td>
-                        <td>@users[i].DateJoined.ToShortDateString()</td>
+                        <th>@users.IndexOf(user)</th>
+                        <td>@user.UserName</td>
+                        <td>@user.Email</td>
+                        <td>@user.UserRole</td>
+                        <td>
+                            @if (user.IsBanned.HasValue)
+                            {
+                                <button @onclick="() => OnBanUser(user.Id, user.IsBanned.Value)"
+                                    class="btn btn-sm @(user.IsBanned.Value ? "btn-warning" : "btn-danger")">
+                                    @(user.IsBanned.Value ? "Un-Ban" : "Ban")
+                                </button>
+                            }
+                        </td>
+                        <td>
+                            @if (user.IsLocked.HasValue)
+                            {
+                                <button class="btn btn-sm @(user.IsLocked.Value ? "btn-warning" : "btn-danger")">
+                                    @(user.IsLocked.Value ? "Un-Lock" : "Lock")
+                                </button>
+                            }
+                        </td>
+                        <td>@user.DateJoined.ToShortDateString()</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm"><i class="fa fa-pen"></i></button>
+                            <button class="btn btn-primary btn-sm">Reset password</button>
+                            <button class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></button>
+                        </td>
                     </tr>
                 }
             </tbody>
+
         </table>
     </div>
 }
@@ -56,6 +78,10 @@ else
 @code {
     private List<User> users = new List<User>();
     private string errorMessage = "";
+    private bool isLoading = true;
+    private readonly object _lock = new object();
+
+
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();
@@ -63,19 +89,48 @@ else
 
     private async Task LoadUsers()
     {
+        lock (_lock)
+        {
+            isLoading = true;
+        }
+
         var (data, error) = await apiService.SendRequestAsync<User[]>(HttpMethod.Get, "/api/v1/users");
 
-        if (error != null)
+        lock (_lock)
+        {
+            if (error != null)
+            {
+                errorMessage = error;
+            }
+            else
+            {
+                users = data.ToList();
+            }
+
+            isLoading = false;
+        }
+    }
+
+    private async Task OnBanUser(Guid userId, bool isBan)
+    {
+        isLoading = true;
+        var url = "/api/v1/users/" + userId;
+        var updatePayload = new { IsBanned = !isBan };
+
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, url, updatePayload);
+        if (!string.IsNullOrEmpty(error))
         {
             errorMessage = error;
         }
         else
         {
-            users = data.ToList();
+            await OnMutationUpdate();
         }
+
+        isLoading = false;
     }
 
-    private async Task OnUserCreated()
+    private async Task OnMutationUpdate()
     {
         await LoadUsers();
         StateHasChanged();

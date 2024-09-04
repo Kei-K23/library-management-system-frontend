@@ -54,7 +54,7 @@
 
 
 @code {
-    [Parameter] public EventCallback OnUserCreated { get; set; }
+    [Parameter] public EventCallback OnMutationUpdate { get; set; }
     private UserCreateDto userCreateDto = new UserCreateDto();
     private string errorMessage = "";
 
@@ -67,7 +67,7 @@
         }
         else
         {
-            await OnUserCreated.InvokeAsync();
+            await OnMutationUpdate.InvokeAsync();
         }
     }
 }
