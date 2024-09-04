@@ -66,7 +66,8 @@ else
                         <td>
                             <button class="btn btn-primary btn-sm"><i class="fa fa-pen"></i></button>
                             <button class="btn btn-primary btn-sm">Reset password</button>
-                            <button class="btn btn-danger btn-sm"><i class="fa fa-trash"></i></button>
+                            <button @onclick="() => OnDeleteUser(user.Id)" class="btn btn-danger btn-sm"><i
+                                    class="fa fa-trash"></i></button>
                         </td>
                     </tr>
                 }
@@ -138,6 +139,23 @@ else
         var updatePayload = new { IsLocked = !isLock };
 
         var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, url, updatePayload);
+        if (!string.IsNullOrEmpty(error))
+        {
+            errorMessage = error;
+        }
+        else
+        {
+            await OnMutationUpdate();
+        }
+
+        isLoading = false;
+    }
+
+    private async Task OnDeleteUser(Guid userId)
+    {
+        isLoading = true;
+        var url = "/api/v1/users/" + userId;
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Delete, url);
         if (!string.IsNullOrEmpty(error))
         {
             errorMessage = error;

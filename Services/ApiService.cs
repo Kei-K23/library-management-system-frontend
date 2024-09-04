@@ -11,7 +11,7 @@ namespace LibraryManagementSystemApp.Services
             _httpContextService = httpContextService;
         }
 
-        public async Task<(TResponse Data, string ErrorMessage)> SendRequestAsync<TResponse>(HttpMethod method, string url, object? content = null)
+        public async Task<(TResponse? Data, string ErrorMessage)> SendRequestAsync<TResponse>(HttpMethod method, string url, object? content = null) where TResponse : class?
         {
             string errorMessage = "";
 
@@ -47,6 +47,11 @@ namespace LibraryManagementSystemApp.Services
 
                 if (response.IsSuccessStatusCode)
                 {
+                    // Only try to deserialize if there is content
+                    if (response.Content.Headers.ContentLength == 0)
+                    {
+                        return (default, null);
+                    }
                     var data = await response.Content.ReadFromJsonAsync<TResponse>();
                     return (data, null);
                 }
