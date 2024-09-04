@@ -1,23 +1,27 @@
 ﻿@page "/"
+@using LibraryManagementSystemApp.Services
 @using Microsoft.AspNetCore.Components.Authorization
 @inject NavigationManager Navigation
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject HttpClient Http
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+@inject AuthService authService
+@rendermode InteractiveServer
 
 <PageTitle>Home</PageTitle>
 
 <h1>Hello, world!</h1>
 <p>Welcome to your new app.</p>
-
 @code {
+    private string text = "";
     protected override async Task OnInitializedAsync()
     {
-        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
-        var user = authState.User;
-
-        if (!user.Identity.IsAuthenticated)
+        bool isAuthenticated = await authService.IsAuthenticated();
+        if (!isAuthenticated)
         {
-            Navigation.NavigateTo("/login");
+            return;
         }
     }
+
 }

@@ -51,6 +51,7 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<HttpContextService>();
+builder.Services.AddScoped<AuthService>();
 
 var app = builder.Build();
 

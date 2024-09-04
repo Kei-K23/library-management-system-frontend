@@ -2,8 +2,9 @@
 @using LibraryManagementSystemApp.Services
 @inject HttpClient Http
 @inherits LayoutComponentBase
-@attribute [StreamRendering]
 @inject HttpContextService HttpContextService
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
 
 <div class="page">
     <div class="sidebar">
@@ -11,28 +12,35 @@
     </div>
 
     <main>
-        <div class="top-row px-4">
-            @if (isLoading)
-            {
-                <i class="fa-solid fa-spinner fa-spin-pulse"></i>
-            }
-            else
-            {
-                @if (!string.IsNullOrEmpty(errorMessage))
+        <div class="nav-menu">
+            <div>
+                @if (isLoading)
                 {
-                    <p>@errorMessage</p>
+                    <p>
+                        <i class="fa-solid fa-spinner fa-spin-pulse fs-5"></i>
+                    </p>
                 }
                 else
                 {
-                    @if (!string.IsNullOrEmpty(user.Id.ToString()))
+                    @if (!string.IsNullOrEmpty(errorMessage))
                     {
-                        <div>
-                            <h3>@user.UserName</h3>
-                        </div>
+                        <p>
+                            <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+                            Error
+                        </p>
+                    }
+                    else
+                    {
+                        @if (!string.IsNullOrEmpty(user.Id.ToString()))
+                        {
+                            <div class="flex-center">
+                                <p class="fw-bolder">@user.UserName</p>
+                                <button @onclick="Logout" type="button" class="btn btn-danger btn-sm">Logout</button>
+                            </div>
+                        }
                     }
                 }
-            }
-
+            </div>
         </div>
 
         <article class="content px-4">
@@ -52,7 +60,6 @@
     private User user = new User();
     private bool isLoading = true;
     private string errorMessage = "";
-
     protected override async Task OnInitializedAsync()
     {
         try
@@ -89,7 +96,6 @@
         }
         catch (Exception ex)
         {
-            // Handle errors (e.g., network issues, unauthorized access)
             errorMessage = ex.Message;
             isLoading = false;
         }
@@ -98,4 +104,24 @@
             isLoading = false;
         }
     }
+
+    private async Task Logout()
+    {
+        try
+        {
+            Console.WriteLine("Logout method called");
+
+            // Clear the cookie
+            await JS.InvokeVoidAsync("DeleteCookie.DeleteCookie", "authToken");
+
+            // Redirect to the login page or another appropriate page
+            Navigation.NavigateTo("/login");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Logout failed: {ex.Message}");
+            errorMessage = $"Logout failed: {ex.Message}";
+        }
+    }
+
 }
