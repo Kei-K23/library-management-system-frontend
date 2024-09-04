@@ -2,10 +2,12 @@
 @rendermode InteractiveServer
 @using Microsoft.AspNetCore.Authorization
 @using LibraryManagementSystemApp.Components.Layout
+@using System.Text.Json
 @layout AuthLayout
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject IJSRuntime JS
+@inject IHttpContextAccessor httpContextAccessor
 
 <PageTitle>Login</PageTitle>
 
@@ -27,22 +29,26 @@
 
 @code {
     private LoginModel loginModel = new LoginModel();
+
     private async Task HandleLogin()
     {
         var loginData = new { Email = loginModel.Email, Password = loginModel.Password };
-        // Hanle login here
+        // Handle login here
         var response = await Http.PostAsJsonAsync("/api/v1/auth/login", loginData);
 
         if (response.IsSuccessStatusCode)
         {
-            var token = await response.Content.ReadAsStringAsync();
-            // Store the token in local storage
-            await JS.InvokeVoidAsync("localStorage.setItem", "authToken", token);
-            await JS.InvokeVoidAsync("blazorExtensions.WriteCookie", "authToken", token, 1h);
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var token = JsonDocument.Parse(jsonResponse).RootElement.GetProperty("token").GetString();
 
+            if (token != null)
+            {
+                // Store the token in a cookie
+                await JS.InvokeAsync<object>("WriteCookie.WriteCookie", "authToken", token, DateTime.Now.AddMinutes(1));
 
-            // Redirect to home page or any other page
-            Navigation.NavigateTo("/");
+                // Redirect to home page or any other page
+                Navigation.NavigateTo("/");
+            }
         }
         else
         {
