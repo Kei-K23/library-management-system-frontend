@@ -2,13 +2,14 @@
 @rendermode InteractiveServer
 @using LibraryManagementSystemApp.Models
 @using LibraryManagementSystemApp.Services
+@using LibraryManagementSystemApp.Components.UI
 @inject ApiService apiService
 
 <PageTitle>Users</PageTitle>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Manage Users</h3>
-    <button class="btn btn-primary">New User</button>
+    <CreateUserModal />
 </div>
 
 @if (users.Count < 0)

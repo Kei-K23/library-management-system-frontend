@@ -1,0 +1,60 @@
+@using LibraryManagementSystemApp.Dto
+@using LibraryManagementSystemApp.Enum
+
+<!-- Button trigger modal -->
+<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
+    New user
+</button>
+
+<!-- Modal -->
+<div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Create new user</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <EditForm Model="userCreateDto" OnValidSubmit="HandleUserCreate" FormName="loginForm">
+                    <div class="mb-3">
+                        <label for="userName" class="form-label">Username</label>
+                        <InputText type="text" @bind-Value="userCreateDto.UserName" class="form-control"
+                            id="userName" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email address</label>
+                        <InputText type="email" @bind-Value="userCreateDto.Email" class="form-control" id="email" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <InputText @bind-Value="userCreateDto.Password" type="password" class="form-control"
+                            id="password" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="userRole" class="form-label">User Role</label>
+                        <InputSelect @bind-Value="userCreateDto.UserRole" class="form-control" id="userRole">
+                            @foreach (UserRole role in Enum.GetValues(typeof(UserRole)))
+                            {
+                                <option value="@role">@role.ToString()</option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Create</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+    private UserCreateDto userCreateDto = new UserCreateDto();
+
+    private async Task HandleUserCreate()
+    {
+
+    }
+}
