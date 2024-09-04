@@ -5,6 +5,8 @@
 @inject HttpContextService HttpContextService
 @inject IJSRuntime JS
 @inject NavigationManager Navigation
+@inject AuthService authService
+@inject ApiService apiService
 
 <div class="page">
     <div class="sidebar">
@@ -14,30 +16,18 @@
     <main>
         <div class="nav-menu">
             <div>
-                @if (isLoading)
+                @if (!string.IsNullOrEmpty(errorMessage))
                 {
                     <p>
-                        <i class="fa-solid fa-spinner fa-spin-pulse fs-5"></i>
+                        <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
+                        Error
                     </p>
                 }
                 else
                 {
-                    @if (!string.IsNullOrEmpty(errorMessage))
+                    @if (!string.IsNullOrEmpty(user.Id.ToString()))
                     {
-                        <p>
-                            <i class="fa-solid fa-triangle-exclamation fs-5 text-danger"></i>
-                            Error
-                        </p>
-                    }
-                    else
-                    {
-                        @if (!string.IsNullOrEmpty(user.Id.ToString()))
-                        {
-                            <div class="flex-center">
-                                <p class="fw-bolder">@user.UserName</p>
-                                <button @onclick="Logout" type="button" class="btn btn-danger btn-sm">Logout</button>
-                            </div>
-                        }
+                        <p class="fw-bolder pt-3">@user.UserName</p>
                     }
                 }
             </div>
@@ -58,70 +48,18 @@
 
 @code {
     private User user = new User();
-    private bool isLoading = true;
     private string errorMessage = "";
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            // Ensure HttpContextService is not null
-            if (HttpContextService == null)
-            {
-                errorMessage = "HttpContextService is not available.";
-                isLoading = false;
-                return;
-            }
-            // Fetch the token from the cookie
-            var token = HttpContextService.GetCookie("authToken");
-            if (string.IsNullOrEmpty(token))
-            {
-                errorMessage = "No token found.";
-                isLoading = false;
-                return;
-            }
+        var (data, error) = await apiService.SendRequestAsync<User>(HttpMethod.Get, "/api/v1/users/me");
 
-            isLoading = true;
-            var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users/me");
-            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            var response = await Http.SendAsync(request);
-            if (response.IsSuccessStatusCode)
-            {
-                user = await response.Content.ReadFromJsonAsync<User>();
-            }
-            else
-            {
-                errorMessage = "Failed to fetch user data.";
-            }
-        }
-        catch (Exception ex)
+        if (error != null)
         {
-            errorMessage = ex.Message;
-            isLoading = false;
+            errorMessage = error;
         }
-        finally
+        else
         {
-            isLoading = false;
+            user = data;
         }
     }
-
-    private async Task Logout()
-    {
-        try
-        {
-            Console.WriteLine("Logout method called");
-
-            // Clear the cookie
-            await JS.InvokeVoidAsync("DeleteCookie.DeleteCookie", "authToken");
-
-            // Redirect to the login page or another appropriate page
-            Navigation.NavigateTo("/login");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Logout failed: {ex.Message}");
-            errorMessage = $"Logout failed: {ex.Message}";
-        }
-    }
-
 }
