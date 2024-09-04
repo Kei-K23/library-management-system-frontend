@@ -1,4 +1,9 @@
-﻿@inherits LayoutComponentBase
+﻿@using LibraryManagementSystemApp.Models
+@using LibraryManagementSystemApp.Services
+@inject HttpClient Http
+@inherits LayoutComponentBase
+@attribute [StreamRendering]
+@inject HttpContextService HttpContextService
 
 <div class="page">
     <div class="sidebar">
@@ -7,7 +12,27 @@
 
     <main>
         <div class="top-row px-4">
-            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
+            @if (isLoading)
+            {
+                <i class="fa-solid fa-spinner fa-spin-pulse"></i>
+            }
+            else
+            {
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <p>@errorMessage</p>
+                }
+                else
+                {
+                    @if (!string.IsNullOrEmpty(user.Id.ToString()))
+                    {
+                        <div>
+                            <h3>@user.UserName</h3>
+                        </div>
+                    }
+                }
+            }
+
         </div>
 
         <article class="content px-4">
@@ -21,3 +46,56 @@
     <a href="" class="reload">Reload</a>
     <a class="dismiss">🗙</a>
 </div>
+
+
+@code {
+    private User user = new User();
+    private bool isLoading = true;
+    private string errorMessage = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Ensure HttpContextService is not null
+            if (HttpContextService == null)
+            {
+                errorMessage = "HttpContextService is not available.";
+                isLoading = false;
+                return;
+            }
+            // Fetch the token from the cookie
+            var token = HttpContextService.GetCookie("authToken");
+            if (string.IsNullOrEmpty(token))
+            {
+                errorMessage = "No token found.";
+                isLoading = false;
+                return;
+            }
+
+            isLoading = true;
+            var request = new HttpRequestMessage(HttpMethod.Get, "/api/v1/users/me");
+            request.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            var response = await Http.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                user = await response.Content.ReadFromJsonAsync<User>();
+            }
+            else
+            {
+                errorMessage = "Failed to fetch user data.";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle errors (e.g., network issues, unauthorized access)
+            errorMessage = ex.Message;
+            isLoading = false;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+}

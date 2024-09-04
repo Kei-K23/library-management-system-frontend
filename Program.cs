@@ -1,5 +1,6 @@
 using System.Text;
 using LibraryManagementSystemApp.Components;
+using LibraryManagementSystemApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 
@@ -47,6 +48,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5263") });
+
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<HttpContextService>();
 
 var app = builder.Build();
 
