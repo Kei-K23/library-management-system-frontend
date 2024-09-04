@@ -9,12 +9,16 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Manage Users</h3>
-    <CreateUserModal />
+    <CreateUserModal OnUserCreated="OnUserCreated" />
 </div>
 
-@if (users.Count < 0)
+@if (users.Count == 0 && string.IsNullOrEmpty(errorMessage))
 {
     <p>Loading...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p class="text-danger">@errorMessage</p>
 }
 else
 {
@@ -54,6 +58,11 @@ else
     private string errorMessage = "";
     protected override async Task OnInitializedAsync()
     {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
         var (data, error) = await apiService.SendRequestAsync<User[]>(HttpMethod.Get, "/api/v1/users");
 
         if (error != null)
@@ -64,5 +73,11 @@ else
         {
             users = data.ToList();
         }
+    }
+
+    private async Task OnUserCreated()
+    {
+        await LoadUsers();
+        StateHasChanged();
     }
 }

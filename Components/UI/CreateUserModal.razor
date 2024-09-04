@@ -1,5 +1,8 @@
 @using LibraryManagementSystemApp.Dto
 @using LibraryManagementSystemApp.Enum
+@using LibraryManagementSystemApp.Services
+@using LibraryManagementSystemApp.Models
+@inject ApiService apiService
 
 <!-- Button trigger modal -->
 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
@@ -41,7 +44,7 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Create</button>
+                        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Create</button>
                     </div>
                 </EditForm>
             </div>
@@ -51,10 +54,20 @@
 
 
 @code {
+    [Parameter] public EventCallback OnUserCreated { get; set; }
     private UserCreateDto userCreateDto = new UserCreateDto();
+    private string errorMessage = "";
 
     private async Task HandleUserCreate()
     {
-
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Post, "/api/v1/users", userCreateDto);
+        if (!string.IsNullOrEmpty(error))
+        {
+            errorMessage = error;
+        }
+        else
+        {
+            await OnUserCreated.InvokeAsync();
+        }
     }
 }
