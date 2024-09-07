@@ -1,0 +1,52 @@
+@inject IToastService ToastService
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+    @if (isVisible)
+    {
+        <div class="toast align-items-center text-bg-@toastType border-0 show" role="alert" aria-live="assertive"
+            aria-atomic="true">
+            <div class="d-flex">
+                <div class="toast-body">
+                    @message
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" aria-label="Close"
+                    @onclick="HideToast"></button>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string message;
+    private bool isVisible;
+    private string toastType;
+
+    protected override void OnInitialized()
+    {
+        ToastService.OnShow += ShowToast;
+        ToastService.OnHide += HideToast;
+    }
+
+    private void ShowToast(string message, string type)
+    {
+        this.message = message;
+        this.toastType = type;
+        isVisible = true;
+
+        // Auto-hide after 3 seconds
+        Task.Delay(3000).ContinueWith(_ => HideToast());
+        StateHasChanged();
+    }
+
+    private void HideToast()
+    {
+        isVisible = false;
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ToastService.OnShow -= ShowToast;
+        ToastService.OnHide -= HideToast;
+    }
+}
