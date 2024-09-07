@@ -65,17 +65,18 @@ else
                         <td>@user.DateJoined.ToShortDateString()</td>
                         <td>
                             <button @onclick="() => NavigateToEditUser(user.Id)" class="btn btn-primary btn-sm">Edit</button>
-                            <button class="btn btn-primary btn-sm">Reset password</button>
+                            <button @onclick="() => OnResetPassword(user.Id)" class="btn btn-primary btn-sm">Reset
+                                password</button>
                             <button @onclick="() => OnDeleteUser(user.Id)" class="btn btn-danger btn-sm"><i
                                     class="fa fa-trash"></i></button>
                         </td>
                     </tr>
                 }
             </tbody>
-
         </table>
     </div>
 }
+
 
 @code {
     [Inject] NavigationManager NavigationManager { get; set; }
@@ -120,10 +121,9 @@ else
     private async Task OnBanUser(Guid userId, bool isBan)
     {
         isLoading = true;
-        var url = "/api/v1/users/" + userId;
         var updatePayload = new { IsBanned = !isBan };
 
-        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, url, updatePayload);
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, $"/api/v1/users/{userId}", updatePayload);
         if (!string.IsNullOrEmpty(error))
         {
             errorMessage = error;
@@ -139,10 +139,28 @@ else
     private async Task OnLockUser(Guid userId, bool isLock)
     {
         isLoading = true;
-        var url = "/api/v1/users/" + userId;
         var updatePayload = new { IsLocked = !isLock };
 
-        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, url, updatePayload);
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, $"/api/v1/users/{userId}", updatePayload);
+        if (!string.IsNullOrEmpty(error))
+        {
+            errorMessage = error;
+        }
+        else
+        {
+            await OnMutationUpdate();
+        }
+
+        isLoading = false;
+    }
+
+    private async Task OnResetPassword(Guid userId)
+    {
+        isLoading = true;
+        // Hide and store default password to .env
+        var updatePayload = new { Password = "password123" };
+
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, $"/api/v1/users/{userId}", updatePayload);
         if (!string.IsNullOrEmpty(error))
         {
             errorMessage = error;
