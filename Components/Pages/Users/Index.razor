@@ -1,4 +1,4 @@
-﻿@page "/users"
+@page "/users"
 @rendermode InteractiveServer
 @using LibraryManagementSystemApp.Models
 @using LibraryManagementSystemApp.Services
@@ -9,7 +9,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Manage Users</h3>
-    <CreateUserModal OnMutationUpdate="OnMutationUpdate" />
+    <CreateUserModal Title="Create User" OnMutationUpdate="OnMutationUpdate" />
 </div>
 
 @if (isLoading)
@@ -64,7 +64,7 @@ else
                         </td>
                         <td>@user.DateJoined.ToShortDateString()</td>
                         <td>
-                            <button class="btn btn-primary btn-sm"><i class="fa fa-pen"></i></button>
+                            <button @onclick="() => NavigateToEditUser(user.Id)" class="btn btn-primary btn-sm">Edit</button>
                             <button class="btn btn-primary btn-sm">Reset password</button>
                             <button @onclick="() => OnDeleteUser(user.Id)" class="btn btn-danger btn-sm"><i
                                     class="fa fa-trash"></i></button>
@@ -78,12 +78,16 @@ else
 }
 
 @code {
+    [Inject] NavigationManager NavigationManager { get; set; }
     private List<User> users = new List<User>();
     private string errorMessage = "";
     private bool isLoading = true;
     private readonly object _lock = new object();
 
-
+    private void NavigateToEditUser(Guid userId)
+    {
+        NavigationManager.NavigateTo($"/users/edit/{userId}");
+    }
     protected override async Task OnInitializedAsync()
     {
         await LoadUsers();

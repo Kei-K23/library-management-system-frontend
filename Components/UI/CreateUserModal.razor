@@ -5,8 +5,8 @@
 @inject ApiService apiService
 
 <!-- Button trigger modal -->
-<button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
-    New user
+<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createUserModal">
+    @Title
 </button>
 
 <!-- Modal -->
@@ -18,7 +18,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <EditForm Model="userCreateDto" OnValidSubmit="HandleUserCreate" FormName="loginForm">
+                <EditForm Model="userCreateDto" OnValidSubmit="HandleFormSubmit" FormName="createUserForm">
                     <div class="mb-3">
                         <label for="userName" class="form-label">Username</label>
                         <InputText type="text" @bind-Value="userCreateDto.UserName" class="form-control"
@@ -54,11 +54,24 @@
 
 
 @code {
-    [Parameter] public EventCallback OnMutationUpdate { get; set; }
+
+    [Parameter]
+    public EventCallback OnMutationUpdate { get; set; }
+    [Parameter]
+    public string Title { get; set; }
     private UserCreateDto userCreateDto = new UserCreateDto();
     private string errorMessage = "";
+    protected override void OnParametersSet()
+    {
+        InitializeForm();
+    }
 
-    private async Task HandleUserCreate()
+    private void InitializeForm()
+    {
+        userCreateDto = new UserCreateDto();
+    }
+
+    private async Task HandleFormSubmit()
     {
         var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Post, "/api/v1/users", userCreateDto);
         if (!string.IsNullOrEmpty(error))

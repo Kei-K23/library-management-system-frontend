@@ -1,0 +1,82 @@
+@using LibraryManagementSystemApp.Dto
+@using LibraryManagementSystemApp.Enum
+@using LibraryManagementSystemApp.Services
+@using LibraryManagementSystemApp.Models
+@inject ApiService apiService
+
+<!-- Button trigger modal -->
+<button class="btn btn-primary btn-sm" @onclick="() => EditUser(UserUpdate)" data-bs-toggle="modal"
+    data-bs-target="#updateUserModal">Edit</button>
+
+<!-- Modal -->
+<div class="modal fade" id="updateUserModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Edit User</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (selectedUser != null)
+                {
+                    <EditForm Model="selectedUser" OnValidSubmit="HandleFormSubmit" FormName="updateUserForm">
+                        <div class="mb-3">
+                            <label for="userName" class="form-label">Username</label>
+                            <InputText type="text" @bind-Value="selectedUser.UserName" class="form-control" id="userName" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email address</label>
+                            <InputText type="email" @bind-Value="selectedUser.Email" class="form-control" id="email" />
+                        </div>
+                        <div class="mb-3">
+                            <label for="userRole" class="form-label">User Role</label>
+                            <InputSelect @bind-Value="selectedUser.UserRole" class="form-control" id="userRole">
+                                @foreach (UserRole role in Enum.GetValues(typeof(UserRole)))
+                                {
+                                    <option value="@role">@role.ToString()</option>
+                                }
+                            </InputSelect>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Save</button>
+                        </div>
+                    </EditForm>
+                }
+                else
+                {
+                    <p>Loading user data...</p>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnMutationUpdate { get; set; }
+    [Parameter]
+    public User UserUpdate { get; set; }
+    private string errorMessage = "";
+    private User selectedUser { get; set; }
+
+    private void EditUser(User user)
+    {
+        selectedUser = user;
+    }
+
+    private async Task HandleFormSubmit()
+    {
+        var url = "/api/v1/users/" + selectedUser.Id;
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, url, selectedUser);
+
+        if (!string.IsNullOrEmpty(error))
+        {
+            errorMessage = error;
+        }
+        else
+        {
+            await OnMutationUpdate.InvokeAsync();
+        }
+    }
+}
