@@ -1,4 +1,4 @@
-@page "/users/edit/{userId:guid}"
+@page "/books/edit/{bookId:guid}"
 @rendermode InteractiveServer
 @using LibraryManagementSystemApp.Services
 @using LibraryManagementSystemApp.Enum
@@ -6,6 +6,7 @@
 @inject ApiService apiService
 @inject AuthService authService
 @inject NavigationManager NavigationManager
+
 
 <PageTitle>Edit User</PageTitle>
 
@@ -52,7 +53,7 @@ else
 
 @code {
     [Parameter]
-    public Guid userId { get; set; }
+    public Guid bookId { get; set; }
 
     private User user { get; set; }
     private string errorMessage = "";
@@ -70,7 +71,7 @@ else
 
     private async Task LoadUser()
     {
-        var (data, error) = await apiService.SendRequestAsync<User>(HttpMethod.Get, $"/api/v1/users/{userId}");
+        var (data, error) = await apiService.SendRequestAsync<User>(HttpMethod.Get, $"/api/v1/users/{bookId}");
         if (error != null)
         {
             errorMessage = error;
@@ -84,7 +85,7 @@ else
 
     private async Task UpdateUser()
     {
-        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, $"/api/v1/users/{userId}", user);
+        var (_, error) = await apiService.SendRequestAsync<User>(HttpMethod.Put, $"/api/v1/users/{bookId}", user);
         if (!string.IsNullOrEmpty(error))
         {
             errorMessage = error;
