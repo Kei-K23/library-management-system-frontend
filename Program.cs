@@ -53,6 +53,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<HttpContextService>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<ApiService>();
+builder.Services.AddScoped<IToastService, ToastService>();
 
 var app = builder.Build();
 
