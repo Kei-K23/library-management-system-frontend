@@ -1,3 +1,4 @@
+@rendermode InteractiveServer
 @using LibraryManagementSystemApp.Services
 @inject IToastService ToastService
 
@@ -33,7 +34,6 @@
         this.message = message;
         this.toastType = type;
         isVisible = true;
-
         // Auto-hide after 3 seconds
         Task.Delay(3000).ContinueWith(_ => HideToast());
         StateHasChanged();

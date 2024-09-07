@@ -5,7 +5,7 @@
 @using LibraryManagementSystemApp.Components.UI
 @inject ApiService apiService
 @inject AuthService authService
-
+@inject IToastService toastService
 
 <PageTitle>Users</PageTitle>
 
@@ -138,6 +138,14 @@ else
         else
         {
             await OnMutationUpdate();
+            if (isBan)
+            {
+                toastService.ShowToast("User unbanned successfully", "success");
+            }
+            else
+            {
+                toastService.ShowToast("User banned successfully", "success");
+            }
         }
 
         isLoading = false;
@@ -156,6 +164,14 @@ else
         else
         {
             await OnMutationUpdate();
+            if (isLock)
+            {
+                toastService.ShowToast("User unlocked successfully", "success");
+            }
+            else
+            {
+                toastService.ShowToast("User locked successfully", "success");
+            }
         }
 
         isLoading = false;
@@ -188,10 +204,12 @@ else
         if (!string.IsNullOrEmpty(error))
         {
             errorMessage = error;
+            toastService.ShowToast("Error deleting user", "danger");
         }
         else
         {
             await OnMutationUpdate();
+            toastService.ShowToast("User deleted successfully", "success");
         }
 
         isLoading = false;
